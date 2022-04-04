@@ -8,11 +8,14 @@ import ListItem from '@mui/material/ListItem';
 import logo from './logo.svg';
 import './App.css';
 
+import DisplayContent  from './components/DisplayContent';
+import Properties from './components/Properties';
+
 function App() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [draggables, setDraggables] = useState([
-    { pos: { x: 0, y: 0 }, name: 'Element 0' },
-    { pos: { x: 0, y: 0 }, name: 'Element 1' },
+    { Name: 'Element 0', Label: 'Element 0', Position: { x: 0, y: 0 } },
+    { Name: 'Element 1', Label: 'Element 1', Position: { x: 0, y: 0 } },
   ]);
 
   useEffect(() => {
@@ -47,21 +50,11 @@ function App() {
                 color: '#000000'
               }}
             >
-              <Typography
-                variant="title"
-              >
-                Content
-              </Typography>
-              <List dense>
-                {draggables.map((draggable, index) => (
-                  <ListItem
-                    selected={index === selectedIndex}
-                    onClick={()=> { setSelectedIndex(index) }}
-                  >
-                    {draggable.name}
-                  </ListItem>
-                ))}
-              </List>
+              <DisplayContent
+                components={draggables}
+                selectedIndex={selectedIndex}
+                setSelectedIndex={setSelectedIndex}
+              />
             </Grid>
             <Grid
               item
@@ -73,35 +66,12 @@ function App() {
                 color: '#000000'
               }}
             >
-              <Typography
-                variant="title"
-              >
-                Properties
-              </Typography>
-              <List dense>
-                {Object.keys(draggables[selectedIndex]).map((attrib) => {
-                  if (typeof draggables[selectedIndex][attrib] === 'object')
-                    return(
-                      <>
-                        <ListItem>
-                          {attrib}
-                        </ListItem>
-                        <List dense>
-                          {Object.keys(draggables[selectedIndex][attrib]).map((secondary) => (
-                            <ListItem>
-                              {secondary}: {draggables[selectedIndex][attrib][secondary]}
-                            </ListItem>
-                          ))}
-                        </List>
-                      </>
-                    );
-                  return(
-                    <ListItem>
-                      {attrib}: {draggables[selectedIndex][attrib]}
-                    </ListItem>
-                  );
-                })}
-              </List>
+              <Properties
+                selectedComponent={draggables[selectedIndex]}
+                selectedIndex={selectedIndex}
+                components={draggables}
+                setComponents={setDraggables}
+              />
             </Grid>
           </Grid>
         </Grid>
@@ -112,8 +82,9 @@ function App() {
                 setDraggables([
                   ...draggables,
                   {
-                    pos: { x: 0, y: 0 },
-                    name: `Element ${draggables.length}`
+                    Name: `Element ${draggables.length}`,
+                    Label: `Element ${draggables.length}`,
+                    Position: { x: 0, y: 0 },
                   }]);
               }}
             >
@@ -125,16 +96,16 @@ function App() {
               <Draggable
                 handle=".handle"
                 positionOffset={{ x: 'left', y: 'top' }}
-                position={draggableComponent.pos}
+                position={draggableComponent.Position}
                 grid={[25, 25]}
                 scale={1}
                 onDrag={(e, data) => {
                   const updDraggable = { ...draggableComponent };
-                  const { x, y } = draggableComponent.pos;
+                  const { x, y } = draggableComponent.Position;
                   const { deltaX, deltaY } = data;
 
-                  updDraggable.pos.x = x + deltaX;
-                  updDraggable.pos.y = y + deltaY;
+                  updDraggable.Position.x = x + deltaX;
+                  updDraggable.Position.y = y + deltaY;
 
                   const updDraggables = [...draggables];
                   updDraggables[index] = updDraggable;
@@ -150,13 +121,14 @@ function App() {
                     width: '100px',
                     height: '100px',
                     position: 'absolute',
-                    top: draggableComponent.pos.y,
-                    left: draggableComponent.pos.x
+                    top: draggableComponent.Position.y,
+                    left: draggableComponent.Position.x
                   }}
+                  onClick={() => { setSelectedIndex(index); }}
                 >
-                  <div>{draggableComponent.name}</div>
-                  <div>X: {draggableComponent.pos.x}</div>
-                  <div>Y: {draggableComponent.pos.y}</div>
+                  <div>{draggableComponent.Label}</div>
+                  <div>X: {draggableComponent.Position.x}</div>
+                  <div>Y: {draggableComponent.Position.y}</div>
                 </div>
               </Draggable>
             ))}
