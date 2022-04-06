@@ -1,21 +1,59 @@
 import React, { useState, useEffect, } from 'react';
-import ReactDOM from 'react-dom';
-import Draggable, { DraggableCore } from 'react-draggable';
+import Draggable from 'react-draggable';
 import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import logo from './logo.svg';
-import './App.css';
+import Button from '@mui/material/Button';
+import { makeStyles } from '@mui/styles';
 
 import DisplayContent  from './components/DisplayContent';
 import Properties from './components/Properties';
 
+const ELEMENTS = {
+  "div": (index, properties, setSelectedIndex) => 
+    (<div
+      className="handle"
+      style={{
+        border: '1px solid',
+        backgroundColor: '#ff00ff',
+        width: '100px',
+        height: '100px',
+        position: 'absolute',
+        top: properties.Position.y,
+        left: properties.Position.x
+      }}
+      onClick={(e) => { e.preventDefault(); setSelectedIndex(index); }}
+    >{properties.Label}
+  </div>),
+  "button": (index, properties, setSelectedIndex) => 
+  (<Button
+    variant="contained"
+    className="handle"
+    style={{
+      position: 'absolute',
+      top: properties.Position.y,
+      left: properties.Position.x
+    }}
+    onClick={(e) => { e.preventDefault(); setSelectedIndex(index); }}
+  >{properties.Label}
+  </Button>),
+
+}
+
+const useStyles = makeStyles({
+  pane: {
+    backgroundColor: '#ffffff',
+    height: '50vh',
+    border: '1px solid',
+    color: '#000000'
+  }
+});
+
 function App() {
+  const classes = useStyles();
+
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [draggables, setDraggables] = useState([
-    { Name: 'Element 0', Label: 'Element 0', Position: { x: 0, y: 0 } },
-    { Name: 'Element 1', Label: 'Element 1', Position: { x: 0, y: 0 } },
+    { Name: 'Element 0', Label: 'Element 0', Type: 'div', Position: { x: 0, y: 0 } },
+    { Name: 'Element 1', Label: 'Element 1', Type: 'div', Position: { x: 0, y: 0 } },
   ]);
 
   useEffect(() => {
@@ -26,7 +64,6 @@ function App() {
     <div
       className="App"
       style={{
-        backgroundColor: "#282c34",
         color: 'white',
         width: '100vw',
         height: '100vh',
@@ -45,10 +82,9 @@ function App() {
               xs={12}
               style={{
                 backgroundColor: '#ffffff',
-                height: '50vh',
-                border: '1px solid',
-                color: '#000000'
-              }}
+                color: '#000000',
+                borderRight: '1px solid',
+                height: '46vh',}}
             >
               <DisplayContent
                 components={draggables}
@@ -56,15 +92,41 @@ function App() {
                 setSelectedIndex={setSelectedIndex}
               />
             </Grid>
-            <Grid
+            <Grid 
               item
               xs={12}
               style={{
                 backgroundColor: '#ffffff',
-                height: '50vh',
-                border: '1px solid',
-                color: '#000000'
+                borderRight: '1px solid',
+                borderBottom: '1px solid',
+                color: '#000000',
+                height: '4vh',
+                paddingLeft: '1rem',
+                paddingRight: '1rem',
+                paddingBottom: '0.5rem',
               }}
+            >
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => {
+                  setDraggables([
+                    ...draggables,
+                    {
+                      Name: `Element ${draggables.length}`,
+                      Label: `Element ${draggables.length}`,
+                      Type: 'div',
+                      Position: { x: 0, y: 0 },
+                    }]);
+                }}
+              >
+                Add
+              </Button>
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              className={classes.pane}
             >
               <Properties
                 selectedComponent={draggables[selectedIndex]}
@@ -76,22 +138,7 @@ function App() {
           </Grid>
         </Grid>
         <Grid item xs={8}>
-          <div style={{backgroundColor: '#ff00ff'}}>
-            <button
-              onClick={() => {
-                setDraggables([
-                  ...draggables,
-                  {
-                    Name: `Element ${draggables.length}`,
-                    Label: `Element ${draggables.length}`,
-                    Position: { x: 0, y: 0 },
-                  }]);
-              }}
-            >
-              Add draggable
-            </button>
-          </div>
-          <div style={{position: 'relative'}}>
+          <div className="box" style={{width: '100%', height: '100vh', position: 'relative', overflow: 'auto', backgroundColor: "#282c34", padding: '0'}}>
             {draggables.map((draggableComponent, index) => (
               <Draggable
                 handle=".handle"
@@ -99,7 +146,11 @@ function App() {
                 position={draggableComponent.Position}
                 grid={[25, 25]}
                 scale={1}
+                bounds={{left: 0, top: 0, right: 2500, bottom: 2500}}
                 onDrag={(e, data) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
                   const updDraggable = { ...draggableComponent };
                   const { x, y } = draggableComponent.Position;
                   const { deltaX, deltaY } = data;
@@ -113,26 +164,29 @@ function App() {
                   setDraggables(updDraggables);
                 }}
               >
-                <div
-                  className="handle"
-                  style={{
-                    border: '1px solid',
-                    backgroundColor: '#282c34',
-                    width: '100px',
-                    height: '100px',
-                    position: 'absolute',
-                    top: draggableComponent.Position.y,
-                    left: draggableComponent.Position.x
-                  }}
-                  onClick={() => { setSelectedIndex(index); }}
-                >
-                  <div>{draggableComponent.Label}</div>
-                  <div>X: {draggableComponent.Position.x}</div>
-                  <div>Y: {draggableComponent.Position.y}</div>
-                </div>
+                {ELEMENTS[draggableComponent.Type](index, draggableComponent, setSelectedIndex)}
               </Draggable>
             ))}
           </div>
+        </Grid>
+        <Grid
+          item
+          xs={2}
+        >
+          <Grid container>
+            <Grid
+              item
+              xs={12}
+              className={classes.pane}
+            >
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              className={classes.pane}
+            >
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
     </div>

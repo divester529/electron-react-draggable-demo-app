@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { List, ListItem, Typography } from '@mui/material';
 
 function DisplayContent(props) {

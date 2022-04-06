@@ -1,5 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { List, ListItem, Typography, TextField } from '@mui/material';
+import React from 'react';
+import { List, ListItem, Typography, TextField, Select, MenuItem } from '@mui/material';
+
+const TYPES = [
+    { value: 'div', label: 'Rect' },
+    { value: 'button', label: 'Button' },
+    { value: 'select', label: 'Select' },
+];
+
+const ATTRIBUTES = {
+    Name: { render: (props) => <TextField {...props} /> },
+    Label: { render: (props) => <TextField {...props} /> },
+    Type: { render: (props) => <Select {...props} > 
+        {TYPES.map((type) => <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>)}
+        </Select> },
+    x: { render: (props) => <TextField {...props} /> },
+    y: { render: (props) => <TextField {...props} /> },
+};
 
 function AttributeList(props) {
     const { attributes, selectedIndex, selectedComponent, components, setComponents, parents, style } = props;
@@ -34,25 +50,26 @@ function AttributeList(props) {
                     >
                         {attrib}:
                     </Typography>
-                    <TextField
-                        variant="outlined"
-                        value={attributes[attrib]}
-                        size="small"
-                        onChange={(event) => {
-                            const updComponents = [...components ]; 
-                            const updRecord = {...selectedComponent };
-                            console.log(parents);
-                            attributes[attrib]=event.target.value
-                            if(parents)
-                                updRecord[parents][attrib] = event.target.value;
-                            else 
-                                updRecord[attrib] = event.target.value;
+                        {ATTRIBUTES[attrib].render({
+                            variant: 'outlined',
+                            value: attributes[attrib],
+                            size: "small",
+                            fullWidth: true,
+                            onChange: (event) => {
+                                const updComponents = [...components ]; 
+                                const updRecord = {...selectedComponent };
+                                console.log(parents);
+                                attributes[attrib]=event.target.value
+                                if(parents)
+                                    updRecord[parents][attrib] = event.target.value;
+                                else 
+                                    updRecord[attrib] = event.target.value;
 
-                            console.log(updRecord);
-                            updComponents[selectedIndex] = updRecord;
-                            setComponents(updComponents);
-                        }}
-                    />
+                                console.log(updRecord);
+                                updComponents[selectedIndex] = updRecord;
+                                setComponents(updComponents);
+                            }
+                        })}
                     </ListItem>
                   );
                 })}
